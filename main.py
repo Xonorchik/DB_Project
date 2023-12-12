@@ -3,16 +3,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Sequence
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from pydantic import BaseModel
+from models import Patient, Treatment, Medic, TreatmentMedic
+from database import Base, engine, SessionLocal
 
 app = FastAPI()
-
-Base = declarative_base()
-
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:pass123@127.0.0.1:5432/hospital"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base.metadata.create_all(bind=engine)
 
 
