@@ -1,9 +1,9 @@
 import requests
 import random
 from faker import Faker
-from database import Base, engine
+from database import Base, engine, SessionLocal
 from sqlalchemy.orm import sessionmaker
-
+from models import Patient
 
 BASE_URL = 'http://localhost:8000/'
 Base.metadata.create_all(engine)
@@ -19,11 +19,19 @@ dr_spec = ['Cardiologist', 'Neurologist', 'Orthopedic Surgeon', 'Pediatrician', 
            'Pulmonologist', 'Rheumatologist', 'Neurologist', 'Hematologist', 'Infectious Disease Specialist']
 
 
+def generate_policy_number(db: Session) -> str:
+    while True:
+        policy_number = fake.random_int(min=100000, max=999999)
+        existing_patient = db.query(Patient).filter(Patient.policy_number == policy_number).first()
+        if not existing_patient:
+            return policy_number
+
+
 def create_patient():
     return {
         "full_name": fake.name(),
         "date_of_birth": fake.date_of_birth().strftime('%Y-%m-%d'),
-        "policy_number": fake.random_int(min=100000, max=999999),
+        "policy_number": generate_policy_number(SessionLocal()),
         "social_status": random.choice(soc_stat)
     }
 

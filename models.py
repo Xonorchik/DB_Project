@@ -1,9 +1,7 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Index
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 from database import Base, engine
-
-Base = declarative_base()
 
 
 class Patient(Base):
@@ -16,6 +14,13 @@ class Patient(Base):
     social_status = Column(String(100), nullable=False)
     # 1 --> N
     treatments = relationship('Treatment', back_populates='patient')
+
+    # 1 --> 1 for get_patient_with_medic
+    medic_id = Column(Integer, ForeignKey('medics.id'))
+    medic = relationship("Medic", back_populates="patients")
+
+    # JSON поле
+    search_data = Column(JSONB, nullable=True)
 
 
 class Treatment(Base):
@@ -45,6 +50,9 @@ class Medic(Base):
     # 1 --> N
     treatments = relationship('Treatment', secondary='treatment_medic', back_populates='medics')
 
+    # 1 --> 1 for get_patient_with_medic
+    patients = relationship("Patient", back_populates="medic")
+
 
 class TreatmentMedic(Base):
     __tablename__ = 'treatment_medic'
@@ -52,5 +60,8 @@ class TreatmentMedic(Base):
     treatment_id = Column(Integer, ForeignKey('treatments.id', ondelete='CASCADE'), primary_key=True)
     medic_id = Column(Integer, ForeignKey('medics.id', ondelete='CASCADE'), primary_key=True)
 
+
+Index('ix_treatments_id', Treatment.id, unique=False,
+      postgresql_using='gin').create(bind=engine, checkfirst=True)
 
 Base.metadata.create_all(bind=engine)
