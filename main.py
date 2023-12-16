@@ -87,8 +87,8 @@ class MedicDelete(BaseModel):
 
 
 @app.post("/patient/", response_model=PatientResponse)
-def create_patient(patient: PatientCreate, db: Session = Depends(get_db)):
-    db_patient = Patient(**patient.model_dump())
+def create_patient(patient_: PatientCreate, db: Session = Depends(get_db)):
+    db_patient = Patient(**patient_.model_dump())
     db.add(db_patient)
     db.commit()
     db.refresh(db_patient)
@@ -224,8 +224,8 @@ def delete_medic(medic_id: int, db: Session = Depends(get_db)):
 # Read with pagination
 @app.get("/patient/", response_model=List[PatientResponse])
 def get_patient(page: int = 0, per_page: int = 10, db: Session = Depends(get_db)):
-    patient = db.query(Patient).offset(page).limit(per_page).all()
-    return patient
+    patient_ = db.query(Patient).offset(page).limit(per_page).all()
+    return patient_
 
 
 @app.get("/treatment/", response_model=List[TreatmentResponse])
@@ -257,15 +257,15 @@ def search_patients(diagnosis: str, current_state: str, db: Session = Depends(ge
 def get_patients_with_medic(db: Session = Depends(get_db)):
     patients_with_medic = db.query(Patient).options(selectinload(Patient.medic)).all()
     patients_data = []
-    for patient in patients_with_medic:
-        if patient.medic is not None:
+    for patient_ in patients_with_medic:
+        if patient_.medic is not None:
             patients_data.append({
-                "id": patient.id,
-                "name": patient.full_name,
+                "id": patient_.id,
+                "name": patient_.full_name,
                 "medic": {
-                    "id": patient.medic.id,
-                    "name": patient.medic.full_name,
-                    "specialty": patient.medic.speciality,
+                    "id": patient_.medic.id,
+                    "name": patient_.medic.full_name,
+                    "specialty": patient_.medic.speciality,
                 }
             })
     return patients_data
@@ -314,6 +314,8 @@ def get_sorted_patients(sort_by: str, order: str, db: Session = Depends(get_db))
     return patients_
 
 # ORM
+
+# CREATE
 
 
 new_patient = Patient(full_name='John Doe', date_of_birth='1990-01-01', policy_number=123456, social_status='Active')
